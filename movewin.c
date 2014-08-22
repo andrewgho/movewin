@@ -1,5 +1,4 @@
-#include <Carbon/Carbon.h>
-#include <fnmatch.h>
+#include "winutils.h"
 
 #define ME "movewin"
 #define USAGE "usage: " ME " title x y [width height]\n"
@@ -32,46 +31,6 @@ bool WGEqual(WindowGeometry geo1, WindowGeometry geo2) {
 
 static bool isAuthorized() {
     return AXAPIEnabled() || AXIsProcessTrusted();
-}
-
-int CFDictionaryGetInt(CFDictionaryRef theDict, const void *key) {
-    int isSuccess, theInt;
-
-    isSuccess = CFNumberGetValue(
-        CFDictionaryGetValue(theDict, key),
-        kCFNumberIntType,
-        &theInt
-    );
-
-    return isSuccess ? theInt : 0;
-}
-
-char *CFDictionaryCopyCString(CFDictionaryRef theDict, const void *key) {
-    const void *value;
-    CFIndex length;
-    int maxSize, isSuccess;
-    char *theStringCopy;
-
-    value = CFDictionaryGetValue(theDict, key);
-    if(value == (void *)NULL) return (char *)NULL;
-
-    length = CFStringGetLength(value);
-    maxSize = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8);
-    if(length == 0 || maxSize == 0) {
-        theStringCopy = (char *)malloc(1);
-        *theStringCopy = '\0';
-        return theStringCopy;
-    }
-
-    theStringCopy = (char *)malloc(maxSize);
-    isSuccess = CFStringGetCString(
-        CFDictionaryGetValue(theDict, key),
-        theStringCopy,
-        maxSize,
-        kCFStringEncodingUTF8
-    );
-
-    return isSuccess ? theStringCopy : (char *)NULL;
 }
 
 WindowGeometry CFDictionaryGetBounds(CFDictionaryRef theDict) {
