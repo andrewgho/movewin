@@ -79,51 +79,103 @@ char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key) {
 
 /* Given window dictionary from CGWindowList, return position */
 CGPoint CGWindowGetPosition(CFDictionaryRef window) {
-    CFDictionaryRef bounds;
-    int x, y;
-
-    bounds = CFDictionaryGetValue(window, kCGWindowBounds);
-    x = CFDictionaryGetInt(bounds, CFSTR("X"));
-    y = CFDictionaryGetInt(bounds, CFSTR("Y"));
-
+    CFDictionaryRef bounds = CFDictionaryGetValue(window, kCGWindowBounds);
+    int x = CFDictionaryGetInt(bounds, CFSTR("X"));
+    int y = CFDictionaryGetInt(bounds, CFSTR("Y"));
     return CGPointMake(x, y);
 }
 
 /* Given window dictionary from CGWindowList, return size */
 CGSize CGWindowGetSize(CFDictionaryRef window) {
-    CFDictionaryRef bounds;
-    int width, height;
-
-    bounds = CFDictionaryGetValue(window, kCGWindowBounds);
-    width = CFDictionaryGetInt(bounds, CFSTR("Width"));
-    height = CFDictionaryGetInt(bounds, CFSTR("Height"));
-
+    CFDictionaryRef bounds = CFDictionaryGetValue(window, kCGWindowBounds);
+    int width = CFDictionaryGetInt(bounds, CFSTR("Width"));
+    int height = CFDictionaryGetInt(bounds, CFSTR("Height"));
     return CGSizeMake(width, height);
 }
 
 /* Given window dictionary from CGWindowList, return accessibility object */
 AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
-    return NULL;
+    CFStringRef targetWindowName, actualWindowTitle;
+    CGPoint targetPosition, actualPosition;
+    CGSize targetSize, actualSize;
+    pid_t pid;
+    AXUIElementRef app, appWindow, foundAppWindow;
+    CFArrayRef appWindowList;
+    int i;
+
+    /* Save the window name, position, and size we are looking for */
+    targetWindowName = CFDictionaryGetValue(window, kCGWindowName);
+    targetPosition = CGWindowGetPosition(window);
+    targetSize = CGWindowGetSize(window);
+
+    /* Load accessibility application from window PID */
+    pid = CFDictionaryGetInt(window, kCGWindowOwnerPID);
+    app = AXUIElementCreateApplication(pid);
+    AXUIElementCopyAttributeValue(
+        app, kAXWindowsAttribute, (CFTypeRef *)&appWindowList
+    );
+
+    /* Search application windows for first matching title, position, size */
+    foundAppWindow = NULL;
+    for(i = 0; i < CFArrayGetCount(appWindowList); i++) {
+        appWindow = CFArrayGetValueAtIndex(appWindowList, i);
+
+        /* Window name must match */
+        AXUIElementCopyAttributeValue(
+            appWindow, kAXTitleAttribute, (CFTypeRef *)&actualWindowTitle
+        );
+        if(CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0) continue;
+
+        /* Position and size must match */
+        actualPosition = AXWindowGetPosition(appWindow);
+        if(!CGPointEqualToPoint(targetPosition, actualPosition)) continue;
+        actualSize = AXWindowGetSize(appWindow);
+        if(!CGSizeEqualToSize(targetSize, actualSize)) continue;
+
+        /* If we got here, we found the first matching window, save and break */
+        foundAppWindow = appWindow;
+        break;
+    }
+
+    return foundAppWindow;
+}
+
+/* Get a value from an accessibility object */
+void AXWindowGetValue(
+    AXUIElementRef window,
+    CFStringRef attrName,
+    void *valuePtr
+) {
+    AXValueRef attrValue;
+    AXUIElementCopyAttributeValue(window, attrName, (CFTypeRef *)&attrValue);
+    AXValueGetValue(attrValue, AXValueGetType(attrValue), valuePtr);
+    CFRelease(attrValue);
 }
 
 /* Get position of window via accessibility object */
 CGPoint AXWindowGetPosition(AXUIElementRef window) {
-    CGPoint point;
-
-    return point;
+    CGPoint position;
+    AXWindowGetValue(window, kAXPositionAttribute, &position);
+    return position;
 }
 
 /* Set position of window via accessibility object */
 void AXWindowSetPosition(AXUIElementRef window, CGPoint position) {
+    AXValueRef attrValue = AXValueCreate(kAXValueCGPointType, &position);
+    AXUIElementSetAttributeValue(window, kAXPositionAttribute, attrValue);
+    CFRelease(attrValue);
 }
 
 /* Get size of window via accessibility object */
 CGSize AXWindowGetSize(AXUIElementRef window) {
     CGSize size;
-
+    AXWindowGetValue(window, kAXSizeAttribute, &size);
     return size;
 }
 
 /* Set size of window via accessibility object */
 void AXWindowSetSize(AXUIElementRef window, CGSize size) {
+    AXValueRef attrValue = AXValueCreate(kAXValueCGSizeType, &size);
+    AXUIElementSetAttributeValue(window, kAXSizeAttribute, attrValue);
+    CFRelease(attrValue);
 }
