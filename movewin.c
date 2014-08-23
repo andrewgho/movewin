@@ -13,8 +13,12 @@ typedef struct {
 
 /* Return true if and only if we are authorized to call accessibility APIs */
 static bool isAuthorized() {
-    /* TODO: silence deprecation warning in Mavericks and later */
+#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9
     return AXAPIEnabled() || AXIsProcessTrusted();
+#else
+    /* Mavericks and later have only per-process accessibility permissions */
+    return AXIsProcessTrusted();
+#endif
 }
 
 /* Callback for windowList() moves the first window it encounters */
