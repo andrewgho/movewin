@@ -13,7 +13,7 @@ typedef struct {
 
 /* Return true if and only if we are authorized to call accessibility APIs */
 static bool isAuthorized() {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_9
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
     return AXAPIEnabled() || AXIsProcessTrusted();
 #else
     /* Mavericks and later have only per-process accessibility permissions */
@@ -34,7 +34,7 @@ void moveWindow(CFDictionaryRef window, void *ctxPtr) {
     /* Move window, unless positions already match */
     actualPosition = CGWindowGetPosition(window);
     if(!CGPointEqualToPoint(ctx->position, CGWindowGetPosition(window))) {
-        appWindow = AXWindowFromCGWindow(window);
+        if(!appWindow) appWindow = AXWindowFromCGWindow(window);
         AXWindowSetPosition(appWindow, ctx->position);
     }
 
