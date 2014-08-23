@@ -1,14 +1,11 @@
 #include "winutils.h"
 
+/* Callback for windowList() prints title of each window it encounters */
 void printWindow(CFDictionaryRef window, void *unused) {
-    char *appName, *windowName;
-    CGPoint position;
-    CGSize size;
-
-    appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
-    windowName = CFDictionaryCopyCString(window, kCGWindowName);
-    position = CGWindowGetPosition(window);
-    size = CGWindowGetSize(window);
+    char *appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
+    char *windowName = CFDictionaryCopyCString(window, kCGWindowName);
+    CGPoint position = CGWindowGetPosition(window);
+    CGSize size = CGWindowGetSize(window);
 
     printf(
         "%s - %s - %d %d %d %d\n",
@@ -16,21 +13,17 @@ void printWindow(CFDictionaryRef window, void *unused) {
         (int)position.x, (int)position.y,
         (int)size.width, (int)size.height
     );
-
     free(windowName);
     free(appName);
 }
 
 int main(int argc, char **argv) {
-    char *pattern;
+    char *pattern = NULL;
     int count;
 
-    if(argc > 1 && *argv[1]) {
-        pattern = argv[1];
-    } else {
-        pattern = (char *)NULL;
-    }
+    if(argc > 1 && *argv[1]) pattern = argv[1];
     count = windowList(pattern, printWindow, (void *)NULL);
 
+    /* Return success if found any windows, or no windows but also no query */
     return count > 0 || !pattern ? 0 : 1;
 }
