@@ -7,11 +7,24 @@ int EnumerateWindows(
     void(*callback)(CFDictionaryRef window, void *callback_data),
     void *callback_data
 ) {
+    int patternLen, subPatternLen, count, i, layer, titleSize;
+    char *subPattern, *starL, *starR, *appName, *windowName, *title;
     CFArrayRef windowList;
-    int count, i, layer, titleSize;
     CFDictionaryRef window;
-    char *appName, *windowName, *title;
 
+    /* Add asterisks to left/right of pattern, if they are not already there */
+    if(pattern && *pattern) {
+        patternLen = strlen(pattern);
+        starL = (*pattern == '*') ? "" : "*";
+        starR = (*pattern + (patternLen - 1) == '*') ? "" : "*";
+        subPatternLen = patternLen + strlen(starL) + strlen(starR) + 1;
+        subPattern = (char *)malloc(subPatternLen);
+        snprintf(subPattern, subPatternLen, "%s%s%s", starL, pattern, starR);
+    } else {
+        subPattern = pattern;
+    }
+
+    /* Iterate through list of all windows, run callback on pattern matches */
     windowList = CGWindowListCopyWindowInfo(
         (kCGWindowListOptionOnScreenOnly|kCGWindowListExcludeDesktopElements),
         kCGNullWindowID
@@ -19,16 +32,20 @@ int EnumerateWindows(
     count = 0;
     for(i = 0; i < CFArrayGetCount(windowList); i++) {
         window = CFArrayGetValueAtIndex(windowList, i);
+
+        /* Skip windows that are not on the desktop layer */
         layer = CFDictionaryGetInt(window, kCGWindowLayer);
         if(layer > 0) continue;
 
+        /* Turn application name and title into string to match against */
         appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
         windowName = CFDictionaryCopyCString(window, kCGWindowName);
         titleSize = strlen(appName) + strlen(" - ") + strlen(windowName) + 1;
         title = (char *)malloc(titleSize);
         snprintf(title, titleSize, "%s - %s", appName, windowName);
 
-        if(!pattern || fnmatch(pattern, title, 0) == 0) {
+        /* If no pattern, or pattern matches, run callback */
+        if(!pattern || fnmatch(subPattern, title, 0) == 0) {
             if(callback) (*callback)(window, callback_data);
             count++;
         }
@@ -37,6 +54,7 @@ int EnumerateWindows(
         free(windowName);
         free(appName);
     }
+    if(subPattern != pattern) free(subPattern);
 
     return count;
 }
@@ -62,6 +80,7 @@ char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key) {
     dictValue = CFDictionaryGetValue(dict, key);
     if(dictValue == NULL) return NULL;
 
+    /* If empty value, allocate and return empty string */
     length = CFStringGetLength(dictValue);
     maxSize = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8);
     if(length == 0 || maxSize == 0) {
@@ -70,6 +89,7 @@ char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key) {
         return value;
     }
 
+    /* Otherwise, allocate string and copy value into it */
     value = (char *)malloc(maxSize);
     isSuccess = CFStringGetCString(
         dictValue, value, maxSize, kCFStringEncodingUTF8
