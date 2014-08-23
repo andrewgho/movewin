@@ -6,7 +6,6 @@ extern "C" {
 #endif
 
 #include <Carbon/Carbon.h>
-#include <fnmatch.h>
 
 /* Search windows for match (NULL for all), run function (NULL for none) */
 int EnumerateWindows(

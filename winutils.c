@@ -1,3 +1,4 @@
+#include <fnmatch.h>
 #include "winutils.h"
 
 /* Search windows for match (NULL for all), run function (NULL for none) */
