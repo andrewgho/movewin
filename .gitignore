@@ -2,3 +2,4 @@ lswin
 lswin.o
 movewin
 movewin.o
+winutils.o
