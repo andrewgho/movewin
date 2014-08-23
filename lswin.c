@@ -1,6 +1,6 @@
 #include "winutils.h"
 
-/* Callback for windowList() prints title of each window it encounters */
+/* Callback for EnumerateWindows() prints title of each window it encounters */
 void PrintWindow(CFDictionaryRef window, void *unused) {
     char *appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
     char *windowName = CFDictionaryCopyCString(window, kCGWindowName);

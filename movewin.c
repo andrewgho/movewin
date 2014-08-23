@@ -21,7 +21,7 @@ static bool isAuthorized() {
 #endif
 }
 
-/* Callback for windowList() moves the first window it encounters */
+/* Callback for EnumerateWindows() moves the first window it encounters */
 void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     MoveWinCtx *ctx = (MoveWinCtx *)ctxPtr;
     AXUIElementRef appWindow = NULL;
