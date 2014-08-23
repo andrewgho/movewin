@@ -22,7 +22,7 @@ static bool isAuthorized() {
 }
 
 /* Callback for windowList() moves the first window it encounters */
-void moveWindow(CFDictionaryRef window, void *ctxPtr) {
+void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     MoveWinCtx *ctx = (MoveWinCtx *)ctxPtr;
     AXUIElementRef appWindow = NULL;
     CGPoint actualPosition;
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 
     /* Try to move a window */
     ctx.movedWindow = 0;
-    windowList(pattern, moveWindow, (void *)&ctx);
+    EnumerateWindows(pattern, MoveWindow, (void *)&ctx);
 
     /* Return success if we moved any window, failure otherwise */
     return ctx.movedWindow ? 0 : 1;

@@ -1,7 +1,7 @@
 #include "winutils.h"
 
 /* Search windows for match (NULL for all), run function (NULL for none) */
-int windowList(
+int EnumerateWindows(
     char *pattern,
     void(*callback)(CFDictionaryRef window, void *callback_data),
     void *callback_data
@@ -59,7 +59,7 @@ char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key) {
     char *value;
 
     dictValue = CFDictionaryGetValue(dict, key);
-    if(dictValue == (void *)NULL) return (char *)NULL;
+    if(dictValue == NULL) return NULL;
 
     length = CFStringGetLength(dictValue);
     maxSize = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8);
@@ -74,7 +74,7 @@ char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key) {
         dictValue, value, maxSize, kCFStringEncodingUTF8
     );
 
-    return isSuccess ? value : (char *)NULL;
+    return isSuccess ? value : NULL;
 }
 
 /* Given window dictionary from CGWindowList, return position */
@@ -115,7 +115,9 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
         app, kAXWindowsAttribute, (CFTypeRef *)&appWindowList
     );
 
-    /* Search application windows for first matching title, position, size */
+    /* Search application windows for first matching title, position, size:
+     * http://stackoverflow.com/questions/6178860/getting-window-number-through-osx-accessibility-api
+     */
     foundAppWindow = NULL;
     for(i = 0; i < CFArrayGetCount(appWindowList); i++) {
         appWindow = CFArrayGetValueAtIndex(appWindowList, i);

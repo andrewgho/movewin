@@ -9,7 +9,7 @@ extern "C" {
 #include <fnmatch.h>
 
 /* Search windows for match (NULL for all), run function (NULL for none) */
-int windowList(
+int EnumerateWindows(
     char *pattern,
     void(*callback)(CFDictionaryRef window, void *callback_data),
     void *callback_data
