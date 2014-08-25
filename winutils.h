@@ -25,7 +25,7 @@ CGPoint CGWindowGetPosition(CFDictionaryRef window);
 CGSize CGWindowGetSize(CFDictionaryRef window);
 
 /* Given window dictionary from CGWindowList, return accessibility object */
-AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window);
+AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx);
 
 /* Get a value from an accessibility object */
 void AXWindowGetValue(

@@ -115,14 +115,14 @@ CGSize CGWindowGetSize(CFDictionaryRef window) {
 }
 
 /* Given window dictionary from CGWindowList, return accessibility object */
-AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
+AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx) {
     CFStringRef targetWindowName, actualWindowTitle;
     CGPoint targetPosition, actualPosition;
     CGSize targetSize, actualSize;
     pid_t pid;
     AXUIElementRef app, appWindow, foundAppWindow;
     CFArrayRef appWindowList;
-    int i;
+    int matchIdx, i;
 
     /* Save the window name, position, and size we are looking for */
     targetWindowName = CFDictionaryGetValue(window, kCGWindowName);
@@ -139,6 +139,7 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
     /* Search application windows for first matching title, position, size:
      * http://stackoverflow.com/questions/6178860/getting-window-number-through-osx-accessibility-api
      */
+    matchIdx = 0;
     foundAppWindow = NULL;
     for(i = 0; i < CFArrayGetCount(appWindowList); i++) {
         appWindow = CFArrayGetValueAtIndex(appWindowList, i);
@@ -155,9 +156,14 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
         actualSize = AXWindowGetSize(appWindow);
         if(!CGSizeEqualToSize(targetSize, actualSize)) continue;
 
-        /* If we got here, we found the first matching window, save and break */
-        foundAppWindow = appWindow;
-        break;
+        /* Multiple windows may match, caller chooses which match to return */
+        if(matchIdx >= minIdx) {
+            /* Found the first matching window, save it and break */
+            foundAppWindow = appWindow;
+            break;
+        } else {
+            matchIdx++;
+        }
     }
 
     return foundAppWindow;
