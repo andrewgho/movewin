@@ -80,6 +80,14 @@ off the display:
 If multiple windows have the same title, you can use the `-i` (index)
 option to select which window to move. The index starts at zero.
 
+### Enabling Accessibility Access
+
+The `movewin` program requires the "Enable access for assistive devices"
+setting to be enabled in the "Accessibility" System Preferences pane in
+OS X pre-Mavericks. To enable assistive UI scripting in Mavericks, see
+this Apple KB article:
+[http://support.apple.com/kb/HT5914](http://support.apple.com/kb/HT5914)
+
 Author
 ------
 
