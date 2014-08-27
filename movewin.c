@@ -26,7 +26,7 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     MoveWinCtx *ctx = (MoveWinCtx *)ctxPtr;
     AXUIElementRef appWindow = NULL;
     CGPoint actualPosition;
-    CGPoint actualSize;
+    CGSize actualSize;
     int minIdx;
 
     /* If we already moved a window, skip all subsequent ones */
@@ -34,17 +34,17 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
 
     /* Move window, unless positions already match */
     actualPosition = CGWindowGetPosition(window);
-    if(!CGPointEqualToPoint(ctx->position, CGWindowGetPosition(window))) {
+    if(!CGPointEqualToPoint(ctx->position, actualPosition)) {
         if(!appWindow) appWindow = AXWindowFromCGWindow(window, minIdx = 0);
         AXWindowSetPosition(appWindow, ctx->position);
     }
 
     /* If size was specified, resize window, unless sizes already match */
     if(ctx->hasSize) {
-        actualSize = CGWindowGetPosition(window);
-        if(!CGSizeEqualToSize(ctx->size, CGWindowGetSize(window))) {
+        actualSize = CGWindowGetSize(window);
+        if(!CGSizeEqualToSize(ctx->size, actualSize)) {
             if(!appWindow) appWindow = AXWindowFromCGWindow(window, minIdx = 0);
-            AXWindowSetPosition(appWindow, ctx->position);
+            AXWindowSetSize(appWindow, ctx->size);
         }
     }
 
