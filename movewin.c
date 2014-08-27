@@ -194,6 +194,7 @@ int main(int argc, char **argv) {
     /* Return success if we moved any window, failure otherwise */
     return ctx.movedWindow ? 0 : 1;
 
+#undef DIE_OPT
 #undef DIE_USAGE
 #undef DIE
 #undef WARN
