@@ -63,16 +63,6 @@ static bool startsWithMinus(char *s) {
     return *p == '-';
 }
 
-/* Return true if and only if we are authorized to call accessibility APIs */
-static bool isAuthorized() {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
-    return AXAPIEnabled() || AXIsProcessTrusted();
-#else
-    /* Mavericks and later have only per-process accessibility permissions */
-    return AXIsProcessTrusted();
-#endif
-}
-
 /* Callback for EnumerateWindows() moves the first window it encounters */
 void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     MoveWinCtx *ctx = (MoveWinCtx *)ctxPtr;

@@ -148,6 +148,16 @@ CGSize CGWindowGetSize(CFDictionaryRef window) {
     return CGSizeMake(width, height);
 }
 
+/* Return true if and only if we are authorized to call accessibility APIs */
+bool isAuthorized() {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
+    return AXAPIEnabled() || AXIsProcessTrusted();
+#else
+    /* Mavericks and later have only per-process accessibility permissions */
+    return AXIsProcessTrusted();
+#endif
+}
+
 /* Given window dictionary from CGWindowList, return accessibility object */
 AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx) {
     CFStringRef targetWindowName, actualWindowTitle;
