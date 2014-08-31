@@ -1,3 +1,4 @@
+# ========================================================================
 # Makefile - build lswin and movewin programs
 # Andrew Ho (andrew@zeuscat.com)
 #
@@ -30,6 +31,7 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# ========================================================================
 
 CC = gcc
 CC_FLAGS = -Wall
@@ -58,3 +60,6 @@ movewin.o: movewin.c
 
 clean:
 	@rm -f $(TARGETS) $(OBJECTS) core
+
+
+# ========================================================================

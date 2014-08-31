@@ -1,4 +1,5 @@
-/* lswin.c - list windows
+/* ========================================================================
+ * lswin.c - list windows
  * Andrew Ho (andrew@zeuscat.com)
  *
  * Copyright (c) 2014, Andrew Ho.
@@ -30,6 +31,7 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ========================================================================
  */
 
 #include "winutils.h"
@@ -61,3 +63,6 @@ int main(int argc, char **argv) {
     /* Return success if found any windows, or no windows but also no query */
     return count > 0 || !pattern ? 0 : 1;
 }
+
+
+/* ======================================================================== */
