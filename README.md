@@ -12,6 +12,10 @@ To build from source:
 
     $ make
 
+To install from this repository into the system (default `/usr/local`):
+
+    $ make install
+
 To list open windows, their locations, and sizes:
 
     $ lswin

@@ -38,6 +38,13 @@ CC_FLAGS = -Wall
 LD = gcc
 LD_FLAGS = -Wall -framework Carbon
 
+DESTDIR =
+PREFIX = $(DESTDIR)/usr/local
+BINDIR = $(PREFIX)/bin
+MKDIR = mkdir
+CP = cp
+RM = rm
+
 TARGETS = lswin movewin
 OBJECTS = lswin.o movewin.o winutils.o
 
@@ -58,8 +65,12 @@ lswin.o: lswin.c
 movewin.o: movewin.c
 	$(CC) $(CC_FLAGS) -c movewin.c
 
+install: $(TARGETS)
+	$(MKDIR) -p $(BINDIR)
+	$(CP) $(TARGETS) $(BINDIR)
+
 clean:
-	@rm -f $(TARGETS) $(OBJECTS) core
+	@$(RM) -f $(TARGETS) $(OBJECTS) core
 
 
 # ========================================================================
