@@ -74,8 +74,11 @@ int EnumerateWindows(
         if(layer > 0) continue;
 
         /* Turn application name and title into string to match against */
+        appName = windowName = title = NULL;
         appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
+        if(!appName || !*appName) goto skip;
         windowName = CFDictionaryCopyCString(window, kCGWindowName);
+        if(!windowName || !*windowName) goto skip;
         titleSize = strlen(appName) + strlen(" - ") + strlen(windowName) + 1;
         title = (char *)malloc(titleSize);
         snprintf(title, titleSize, "%s - %s", appName, windowName);
@@ -86,9 +89,10 @@ int EnumerateWindows(
             count++;
         }
 
-        free(title);
-        free(windowName);
-        free(appName);
+      skip:
+        if(title) free(title);
+        if(windowName) free(windowName);
+        if(appName) free(appName);
     }
     if(subPattern != pattern) free(subPattern);
 
