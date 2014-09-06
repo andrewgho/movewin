@@ -194,7 +194,11 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx) {
         AXUIElementCopyAttributeValue(
             appWindow, kAXTitleAttribute, (CFTypeRef *)&actualWindowTitle
         );
-        if(CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0) continue;
+        if( !actualWindowTitle ||
+            CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0)
+        {
+            continue;
+        }
 
         /* Position and size must match */
         actualPosition = AXWindowGetPosition(appWindow);
