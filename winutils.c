@@ -220,7 +220,6 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx) {
             matchIdx++;
         }
     }
-    CFRelease(appWindowList);
     CFRelease(app);
 
     return foundAppWindow;
