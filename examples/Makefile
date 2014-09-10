@@ -1,5 +1,5 @@
 # ========================================================================
-# Makefile - build lswin and movewin programs
+# Makefile - build example programs
 # Andrew Ho (andrew@zeuscat.com)
 #
 # Copyright (c) 2014, Andrew Ho.
@@ -34,7 +34,7 @@
 # ========================================================================
 
 CC = gcc
-CC_FLAGS = -Wall
+CC_FLAGS = -Wall -I..
 LD = gcc
 LD_FLAGS = -Wall -framework Carbon
 
@@ -45,39 +45,28 @@ MKDIR = mkdir
 CP = cp
 RM = rm
 
-TARGETS = lswin movewin
-OBJECTS = lswin.o movewin.o winutils.o
+TARGETS = bouncewin findleaks
+OBJECTS = bouncewin.o findleaks.o
 
 all: $(TARGETS)
 
-lswin: winutils.o lswin.o
-	$(LD) $(LD_FLAGS) -o lswin winutils.o lswin.o
+bouncewin: ../winutils.o bouncewin.o
+	$(LD) $(LD_FLAGS) -o bouncewin ../winutils.o bouncewin.o
 
-movewin: winutils.o movewin.o
-	$(LD) $(LD_FLAGS) -o movewin winutils.o movewin.o
+findleaks: ../winutils.o findleaks.o
+	$(LD) $(LD_FLAGS) -o findleaks ../winutils.o findleaks.o
 
-winutils.o: winutils.h winutils.c
-	$(CC) $(CC_FLAGS) -c winutils.c
+bouncewin.o: ../winutils.h bouncewin.c
+	$(CC) $(CC_FLAGS) -c bouncewin.c
 
-lswin.o: lswin.c
-	$(CC) $(CC_FLAGS) -c lswin.c
+findleaks.o: ../winutils.h findleaks.c
+	$(CC) $(CC_FLAGS) -c findleaks.c
 
-movewin.o: movewin.c
-	$(CC) $(CC_FLAGS) -c movewin.c
-
-install: $(TARGETS)
-	$(MKDIR) -p $(BINDIR)
-	$(CP) $(TARGETS) $(BINDIR)
+../winutils.o: ../Makefile ../winutils.c ../winutils.h
+	(cd .. && make winutils.o)
 
 clean:
 	@$(RM) -f $(TARGETS) $(OBJECTS) core
-	@(cd examples && make clean)
-
-examples: force
-	(cd examples && make)
-
-force:
-	@true
 
 
 # ========================================================================
