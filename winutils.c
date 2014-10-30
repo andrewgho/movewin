@@ -198,7 +198,7 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int windowId) {
         app, kAXWindowsAttribute, (CFTypeRef *)&appWindowList
     );
 
-    /* Search application windows to find the one to move */
+    /* Search application windows to find a match */
     foundAppWindow = NULL;
     for(i = 0; i < CFArrayGetCount(appWindowList); i++) {
         appWindow = CFArrayGetValueAtIndex(appWindowList, i);
