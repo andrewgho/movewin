@@ -38,18 +38,21 @@
 
 #define ME "movewin"
 #define USAGE \
-"usage: " ME " [-h] [-n] [-i idx] title x y [width height]\n"
+"usage: " ME " [-h] [-n] [-i id | title] x y [width height]\n"
 #define FULL_USAGE USAGE \
 "    -h            display this help text and exit\n" \
 "    -n            negative x y is off screen (default from bottom right)\n" \
-"    -i idx        for duplicate titles, move window at idx (default 0)\n" \
+"    -i id         window ID to move (one of title or ID is required)\n" \
 "    title         pattern to match \"Application - Title\" against\n" \
 "    x y           required, position to move window to\n" \
 "    width height  optional, new size to resize window to\n"
 
+/* Undocumented accessibility API to get window ID, see winutils.c */
+extern AXError _AXUIElementGetWindow(AXUIElementRef, CGWindowID *out);
+
 /* Hold target position, optional size, mutex so we only move first window */
 typedef struct {
-    int skipWindows;     /* for duplicate titles, skip this many windows */
+    int id;              /* window ID to search for */
     int fromRight;       /* x coordinate is offset from right, not left */
     int fromBottom;      /* y coordinate is offset from bottom, not top */
     CGPoint position;    /* move window to this position */
@@ -68,6 +71,7 @@ static bool startsWithMinus(char *s) {
 /* Callback for EnumerateWindows() moves the first window it encounters */
 void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     MoveWinCtx *ctx = (MoveWinCtx *)ctxPtr;
+    int windowId = CFDictionaryGetInt(window, kCGWindowNumber);
     CGPoint newPosition, actualPosition;
     CGSize newSize, actualSize;
     CGRect displayBounds;
@@ -77,11 +81,8 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     /* If we already moved a window, skip all subsequent ones */
     if(ctx->movedWindow) return;
 
-    /* If we are supposed to skip some windows, skip this one */
-    if(ctx->skipWindows > 0) {
-        ctx->skipWindows--;
-        return;
-    }
+    /* If a windowId was specified, and this isn't that window, skip it */
+    if(ctx->id != -1 && ctx->id != windowId) return;
 
     /* Recalculate target window position if we got negative values */
     newPosition = ctx->position;
@@ -118,10 +119,13 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     ctx->movedWindow = 1;
 }
 
+/* Silence warning that address of _AXUIElementGetWindow is always true */
+#pragma GCC diagnostic ignored "-Waddress"
+
 int main(int argc, char **argv) {
-    int ch, negativeOffScreen = 0;
-    char *pattern;
     MoveWinCtx ctx;
+    int ch, negativeOffScreen = 0;
+    char *pattern = NULL;
 
 #define WARN(msg) { fprintf(stderr, ME ": " msg "\n"); }
 #define DIE(msg) { fprintf(stderr, ME ": " msg "\n"); exit(1); }
@@ -130,7 +134,7 @@ int main(int argc, char **argv) {
     { fprintf(stderr, ME ": " msg " -- %c\n" USAGE, optopt); return 1; }
 
     /* Parse and sanitize command line arguments */
-    ctx.skipWindows = 0;
+    ctx.id = -1;
     while((ch = getopt(argc, argv, ":hni:")) != -1) {
         switch(ch) {
             case 'h':
@@ -140,7 +144,10 @@ int main(int argc, char **argv) {
                 negativeOffScreen = 1;
                 break;
             case 'i':
-                ctx.skipWindows = atoi(optarg);
+                if(!_AXUIElementGetWindow) {
+                    DIE("unable to use window IDs for reference");
+                }
+                ctx.id = atoi(optarg);
                 break;
             case ':':
                 DIE_OPT("option requires an argument");
@@ -150,24 +157,30 @@ int main(int argc, char **argv) {
     }
     argc -= optind;
     argv += optind;
-    if(argc < 1) DIE_USAGE("missing required window title");
-    if(argc < 3) DIE_USAGE("missing required window x and y coordinates");
-    if(argc == 4) DIE_USAGE("height is required if width is present");
-    pattern = argv[0];
-    if(!pattern || !*pattern) DIE_USAGE("missing required title");
-    ctx.position.x = atoi(argv[1]);
-    ctx.position.y = atoi(argv[2]);
+    if(ctx.id == -1) {
+        if(argc < 1) DIE_USAGE("missing required window title");
+        pattern = argv[0];
+        if(!pattern || !*pattern) DIE_USAGE("missing required window title");
+        argc--;
+        argv++;
+    }
+    if(argc < 2) DIE_USAGE("missing required window x and y coordinates");
+    ctx.position.x = atoi(argv[0]);
+    ctx.position.y = atoi(argv[1]);
     if(negativeOffScreen) {
         ctx.fromRight = ctx.fromBottom = 0;
     } else {
-        ctx.fromRight = startsWithMinus(argv[1]);
-        ctx.fromBottom = startsWithMinus(argv[2]);
+        ctx.fromRight = startsWithMinus(argv[0]);
+        ctx.fromBottom = startsWithMinus(argv[1]);
         ctx.position.x = abs(ctx.position.x);
         ctx.position.y = abs(ctx.position.y);
     }
-    if(argc > 4) {
-        ctx.size.width = atoi(argv[3]);
-        ctx.size.height = atoi(argv[4]);
+    argc -= 2;
+    argv += 2;
+    if(argc == 1) DIE_USAGE("height is required if width is present");
+    if(argc > 1) {
+        ctx.size.width = atoi(argv[0]);
+        ctx.size.height = atoi(argv[1]);
         if(ctx.size.width <= 0) DIE("width must be positive integer");
         if(ctx.size.height <= 0) DIE("height must be positive integer");
         ctx.hasSize = 1;
@@ -175,7 +188,9 @@ int main(int argc, char **argv) {
         ctx.size.width = ctx.size.height = 0;
         ctx.hasSize = 0;
     }
-    if(argc > 5) WARN("ignoring extraneous arguments");
+    argc -= 2;
+    argv += 2;
+    if(argc > 0) WARN("ignoring extraneous arguments");
 
     /* Die if we are not authorized to use OS X accessibility */
     if(!isAuthorized()) DIE("not authorized to use accessibility API");

@@ -37,6 +37,12 @@
 #include <fnmatch.h>
 #include "winutils.h"
 
+/* Undocumented accessibility API to get window ID:
+ * http://stackoverflow.com/a/10134254
+ * https://github.com/jmgao/metamove/blob/master/src/window.mm
+ */
+extern AXError _AXUIElementGetWindow(AXUIElementRef, CGWindowID *out);
+
 /* Search windows for match (NULL for all), run function (NULL for none) */
 int EnumerateWindows(
     char *pattern,
@@ -165,17 +171,22 @@ bool isAuthorized() {
 #endif
 }
 
+/* Silence warning that address of _AXUIElementGetWindow is always true */
+#pragma GCC diagnostic ignored "-Waddress"
+
 /* Given window dictionary from CGWindowList, return accessibility object */
-AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx) {
+AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int windowId) {
+    CGWindowID targetWindowId, actualWindowId;
     CFStringRef targetWindowName, actualWindowTitle;
     CGPoint targetPosition, actualPosition;
     CGSize targetSize, actualSize;
     pid_t pid;
     AXUIElementRef app, appWindow, foundAppWindow;
+    int i;
     CFArrayRef appWindowList;
-    int matchIdx, i;
 
-    /* Save the window name, position, and size we are looking for */
+    /* Save the window ID, name, position, and size we are looking for */
+    targetWindowId = CFDictionaryGetInt(window, kCGWindowNumber);
     targetWindowName = CFDictionaryGetValue(window, kCGWindowName);
     targetPosition = CGWindowGetPosition(window);
     targetSize = CGWindowGetSize(window);
@@ -187,37 +198,45 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int minIdx) {
         app, kAXWindowsAttribute, (CFTypeRef *)&appWindowList
     );
 
-    /* Search application windows for first matching title, position, size:
-     * http://stackoverflow.com/questions/6178860/getting-window-number-through-osx-accessibility-api
-     */
-    matchIdx = 0;
+    /* Search application windows to find the one to move */
     foundAppWindow = NULL;
     for(i = 0; i < CFArrayGetCount(appWindowList); i++) {
         appWindow = CFArrayGetValueAtIndex(appWindowList, i);
 
-        /* Window name must match */
-        AXUIElementCopyAttributeValue(
-            appWindow, kAXTitleAttribute, (CFTypeRef *)&actualWindowTitle
-        );
-        if( !actualWindowTitle ||
-            CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0)
-        {
-            continue;
-        }
+        /* If possible, extract the window ID and match window by ID */
+        if(_AXUIElementGetWindow) {
+            _AXUIElementGetWindow(appWindow, &actualWindowId);
+            if(actualWindowId == targetWindowId) {
+                foundAppWindow = appWindow;
+                break;
+            } else {
+                continue;
+            }
 
-        /* Position and size must match */
-        actualPosition = AXWindowGetPosition(appWindow);
-        if(!CGPointEqualToPoint(targetPosition, actualPosition)) continue;
-        actualSize = AXWindowGetSize(appWindow);
-        if(!CGSizeEqualToSize(targetSize, actualSize)) continue;
+        /* Otherwise, search for first matching title, position, size:
+         * http://stackoverflow.com/questions/6178860/getting-window-number-through-osx-accessibility-api
+         */
+        } else {
 
-        /* Multiple windows may match, caller chooses which match to return */
-        if(matchIdx >= minIdx) {
+            /* Window name must match */
+            AXUIElementCopyAttributeValue(
+                appWindow, kAXTitleAttribute, (CFTypeRef *)&actualWindowTitle
+            );
+            if( !actualWindowTitle ||
+                CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0)
+            {
+                continue;
+            }
+
+            /* Position and size must match */
+            actualPosition = AXWindowGetPosition(appWindow);
+            if(!CGPointEqualToPoint(targetPosition, actualPosition)) continue;
+            actualSize = AXWindowGetSize(appWindow);
+            if(!CGSizeEqualToSize(targetSize, actualSize)) continue;
+
             /* Found the first matching window, save it and break */
             foundAppWindow = appWindow;
             break;
-        } else {
-            matchIdx++;
         }
     }
     CFRelease(app);
