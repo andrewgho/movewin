@@ -175,7 +175,7 @@ bool isAuthorized() {
 #pragma GCC diagnostic ignored "-Waddress"
 
 /* Given window dictionary from CGWindowList, return accessibility object */
-AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int windowId) {
+AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
     CGWindowID targetWindowId, actualWindowId;
     CFStringRef targetWindowName, actualWindowTitle;
     CGPoint targetPosition, actualPosition;

@@ -52,7 +52,7 @@ void TestWindow(CFDictionaryRef window, void *unused) {
     throwaway = (size_t)position.x;
     throwaway = (size_t)size.width;
 
-    appWindow = AXWindowFromCGWindow(window, 0);
+    appWindow = AXWindowFromCGWindow(window);
 
     free(windowName);
     free(appName);

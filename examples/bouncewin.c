@@ -44,7 +44,7 @@ void FindWindow(CFDictionaryRef window, void *ignored) {
     if(appWindow) return;
 
     /* Get AXUIElementRef handle to window */
-    appWindow = AXWindowFromCGWindow(window, 0);
+    appWindow = AXWindowFromCGWindow(window);
 }
 
 int main(int argc, char **argv) {

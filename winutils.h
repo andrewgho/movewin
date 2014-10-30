@@ -64,7 +64,7 @@ CGSize CGWindowGetSize(CFDictionaryRef window);
 bool isAuthorized();
 
 /* Given window dictionary from CGWindowList, return accessibility object */
-AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window, int windowId);
+AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window);
 
 /* Get a value from an accessibility object */
 void AXWindowGetValue(
