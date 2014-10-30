@@ -69,7 +69,7 @@ static bool startsWithMinus(char *s) {
 void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     MoveWinCtx *ctx = (MoveWinCtx *)ctxPtr;
     CGPoint newPosition, actualPosition;
-    CGSize actualSize;
+    CGSize newSize, actualSize;
     CGRect displayBounds;
     AXUIElementRef appWindow = NULL;
     int minIdx;
@@ -86,15 +86,16 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
     /* Recalculate target window position if we got negative values */
     newPosition = ctx->position;
     actualSize = CGWindowGetSize(window);
+    newSize = ctx->hasSize ? ctx->size : actualSize;
     if(ctx->fromRight || ctx->fromBottom) {
         displayBounds = CGDisplayBounds(CGMainDisplayID());
         if(ctx->fromRight) {
             newPosition.x = CGRectGetMaxX(displayBounds) -
-                (actualSize.width + abs(ctx->position.x));
+                (newSize.width + abs(newPosition.x));
         }
         if(ctx->fromBottom) {
             newPosition.y = CGRectGetMaxY(displayBounds) -
-                (actualSize.height + abs(ctx->position.y));
+                (newSize.height + abs(newPosition.y));
         }
     }
 
@@ -107,9 +108,9 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
 
     /* If size was specified, resize window, unless sizes already match */
     if(ctx->hasSize) {
-        if(!CGSizeEqualToSize(ctx->size, actualSize)) {
+        if(!CGSizeEqualToSize(newSize, actualSize)) {
             if(!appWindow) appWindow = AXWindowFromCGWindow(window, minIdx = 0);
-            AXWindowSetSize(appWindow, ctx->size);
+            AXWindowSetSize(appWindow, newSize);
         }
     }
 
