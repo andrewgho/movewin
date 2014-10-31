@@ -56,6 +56,9 @@ int CFDictionaryGetInt(CFDictionaryRef dict, const void *key);
 /* Copy a string value from a CFDictionary into a newly allocated string */
 char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key);
 
+/* Return newly allocated window title like "appName - windowName" */
+char *windowTitle(char *appName, char *windowName);
+
 /* Given window dictionary from CGWindowList, return position, size */
 CGPoint CGWindowGetPosition(CFDictionaryRef window);
 CGSize CGWindowGetSize(CFDictionaryRef window);

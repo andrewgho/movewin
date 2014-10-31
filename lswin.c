@@ -56,19 +56,20 @@ void PrintWindow(CFDictionaryRef window, void *ctxPtr) {
     int windowId = CFDictionaryGetInt(window, kCGWindowNumber);
     char *appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
     char *windowName = CFDictionaryCopyCString(window, kCGWindowName);
+    char *title = windowTitle(appName, windowName);
     CGPoint position = CGWindowGetPosition(window);
     CGSize size = CGWindowGetSize(window);
 
     if(ctx->id == -1 || ctx->id == windowId) {
         if(ctx->longDisplay) printf("%d - ", windowId);
         printf(
-            "%s - %s - %d %d %d %d\n",
-            appName, windowName,
+            "%s - %d %d %d %d\n", title,
             (int)position.x, (int)position.y,
             (int)size.width, (int)size.height
         );
         ctx->numFound++;
     }
+    free(title);
     free(windowName);
     free(appName);
 }

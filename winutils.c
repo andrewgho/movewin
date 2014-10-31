@@ -37,6 +37,11 @@
 #include <fnmatch.h>
 #include "winutils.h"
 
+/* These hardcoded applications are allowed to windows with no name */
+static int emptyWindowNameAllowed(char *appName) {
+    return 0 == strcmp(appName, "Messages");
+}
+
 /* Undocumented accessibility API to get window ID:
  * http://stackoverflow.com/a/10134254
  * https://github.com/jmgao/metamove/blob/master/src/window.mm
@@ -49,7 +54,7 @@ int EnumerateWindows(
     void(*callback)(CFDictionaryRef window, void *callback_data),
     void *callback_data
 ) {
-    int patternLen, subPatternLen, count, i, layer, titleSize;
+    int patternLen, subPatternLen, count, i, layer;
     char *subPattern, *starL, *starR, *appName, *windowName, *title;
     CFArrayRef windowList;
     CFDictionaryRef window;
@@ -84,10 +89,9 @@ int EnumerateWindows(
         appName = CFDictionaryCopyCString(window, kCGWindowOwnerName);
         if(!appName || !*appName) goto skip;
         windowName = CFDictionaryCopyCString(window, kCGWindowName);
-        if(!windowName || !*windowName) goto skip;
-        titleSize = strlen(appName) + strlen(" - ") + strlen(windowName) + 1;
-        title = (char *)malloc(titleSize);
-        snprintf(title, titleSize, "%s - %s", appName, windowName);
+        if(!windowName || (!*windowName && !emptyWindowNameAllowed(appName)))
+            goto skip;
+        title = windowTitle(appName, windowName);
 
         /* If no pattern, or pattern matches, run callback */
         if(!pattern || fnmatch(subPattern, title, 0) == 0) {
@@ -143,6 +147,27 @@ char *CFDictionaryCopyCString(CFDictionaryRef dict, const void *key) {
     );
 
     return isSuccess ? value : NULL;
+}
+
+/* Return newly allocated window title like "appName - windowName" */
+char *windowTitle(char *appName, char *windowName) {
+    size_t titleSize;
+    char *title;
+
+    if(!appName || !*appName) {
+        title = (char *)malloc(1);
+        *title = '\0';
+    } else if(!windowName || !*windowName) {
+        titleSize = strlen(appName) + 1;
+        title = (char *)malloc(titleSize);
+        strncpy(title, appName, titleSize);
+    } else {
+        titleSize = strlen(appName) + strlen(" - ") + strlen(windowName) + 1;
+        title = (char *)malloc(titleSize);
+        snprintf(title, titleSize, "%s - %s", appName, windowName);
+    }
+
+    return title;
 }
 
 /* Given window dictionary from CGWindowList, return position */
@@ -223,7 +248,7 @@ AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window) {
                 appWindow, kAXTitleAttribute, (CFTypeRef *)&actualWindowTitle
             );
             if( !actualWindowTitle ||
-                CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0)
+                CFStringCompare(targetWindowName, actualWindowTitle, 0) != 0 )
             {
                 continue;
             }
