@@ -91,11 +91,11 @@ void MoveWindow(CFDictionaryRef window, void *ctxPtr) {
         displayBounds = CGDisplayBounds(CGMainDisplayID());
         if(ctx->fromRight) {
             newPosition.x = CGRectGetMaxX(displayBounds) -
-                (newSize.width + abs(newPosition.x));
+                (newSize.width + fabs(newPosition.x));
         }
         if(ctx->fromBottom) {
             newPosition.y = CGRectGetMaxY(displayBounds) -
-                (newSize.height + abs(newPosition.y));
+                (newSize.height + fabs(newPosition.y));
         }
     }
 
@@ -171,8 +171,8 @@ int main(int argc, char **argv) {
     } else {
         ctx.fromRight = startsWithMinus(argv[0]);
         ctx.fromBottom = startsWithMinus(argv[1]);
-        ctx.position.x = abs(ctx.position.x);
-        ctx.position.y = abs(ctx.position.y);
+        ctx.position.x = fabs(ctx.position.x);
+        ctx.position.y = fabs(ctx.position.y);
     }
     argc -= 2;
     argv += 2;
