@@ -186,8 +186,22 @@ CGSize CGWindowGetSize(CFDictionaryRef window) {
     return CGSizeMake(width, height);
 }
 
+/* Return true if and only if we are authorized to do screen recording */
+bool isAuthorizedForScreenRecording() {
+    /* TODO: actually check for permission instead of blindly trying to record */
+    /* TODO: always return true for versions prior to Catalina */
+    CGImageRef screenshot = CGWindowListCreateImage(
+        CGRectMake(0, 0, 1, 1),
+        kCGWindowListOptionOnScreenOnly,
+        kCGNullWindowID,
+        kCGWindowImageDefault
+    );
+    CFRelease(screenshot);
+    return 1;
+}
+
 /* Return true if and only if we are authorized to call accessibility APIs */
-bool isAuthorized() {
+bool isAuthorizedForAccessibility() {
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1090
     return AXAPIEnabled() || AXIsProcessTrusted();
 #else

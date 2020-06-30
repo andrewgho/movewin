@@ -63,8 +63,11 @@ char *windowTitle(char *appName, char *windowName);
 CGPoint CGWindowGetPosition(CFDictionaryRef window);
 CGSize CGWindowGetSize(CFDictionaryRef window);
 
+/* Return true if and only if we are authorized to do screen recording */
+bool isAuthorizedForScreenRecording();
+
 /* Return true if and only if we are authorized to call accessibility APIs */
-bool isAuthorized();
+bool isAuthorizedForAccessibility();
 
 /* Given window dictionary from CGWindowList, return accessibility object */
 AXUIElementRef AXWindowFromCGWindow(CFDictionaryRef window);

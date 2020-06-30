@@ -191,8 +191,11 @@ int main(int argc, char **argv) {
     argv += 2;
     if(argc > 0) WARN("ignoring extraneous arguments");
 
+    /* Die if we are not authorized to do screen recording */
+    if(!isAuthorizedForScreenRecording()) DIE("not authorized to do screen recording");
+
     /* Die if we are not authorized to use OS X accessibility */
-    if(!isAuthorized()) DIE("not authorized to use accessibility API");
+    if(!isAuthorizedForAccessibility()) DIE("not authorized to use accessibility API");
 
     /* Try to move a window */
     ctx.movedWindow = 0;

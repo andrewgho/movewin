@@ -79,6 +79,7 @@ int main(int argc, char **argv) {
     int ch;
     char *pattern = NULL;
 
+#define DIE(msg) { fprintf(stderr, ME ": " msg "\n"); exit(1); }
 #define DIE_OPT(msg) \
     { fprintf(stderr, ME ": " msg " -- %c\n" USAGE, optopt); return 1; }
 
@@ -106,6 +107,9 @@ int main(int argc, char **argv) {
     argc -= optind;
     argv += optind;
     if(argc > 0) pattern = argv[0];
+
+    /* Die if we are not authorized to do screen recording */
+    if(!isAuthorizedForScreenRecording()) DIE("not authorized to do screen recording");
 
     /* Print matching windows */
     EnumerateWindows(pattern, PrintWindow, (void *)&ctx);
