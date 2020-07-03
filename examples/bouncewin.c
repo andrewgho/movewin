@@ -2,7 +2,7 @@
  * bouncewin.c - bounce a window around the display
  * Andrew Ho (andrew@zeuscat.com)
  *
- * Copyright (c) 2014, Andrew Ho.
+ * Copyright (c) 2014-2020, Andrew Ho.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
